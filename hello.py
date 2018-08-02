@@ -4,6 +4,7 @@ from flask import redirect
 from flask import render_template
 from flask import session
 from flask import url_for
+from flask import flash
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms import StringField,SubmitField
@@ -31,13 +32,15 @@ def page_not_found(e):
     return render_template('404.html'),404
 
 @app.route('/',methods=['GET','POST'])
-def idnex():
-    name = None
+def index():
     form = NameForm()
     if form.validate_on_submit():
-        name  = form.name.data
-        form.name.data = ''
-    return render_template('index.html',name = name,form = form)
+        old_name = session.get('name')
+        if old_name is not None and old_name != form.name.data:
+            flash('The name has changed!')
+        session['name'] = form.name.data
+        return redirect(url_for('index'))
+    return render_template('index.html',name = session.get('name'),form = form)
 
 if __name__ == '__main__':
     app.run()
